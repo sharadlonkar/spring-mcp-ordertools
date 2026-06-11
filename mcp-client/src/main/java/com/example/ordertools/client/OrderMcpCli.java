@@ -29,8 +29,13 @@ public class OrderMcpCli implements ApplicationRunner {
         if (clients.isEmpty()) {
             throw new IllegalStateException("No MCP client connection configured");
         }
-        // Single configured connection: "order-server".
-        this.mcp = clients.get(0);
+        // With the "external" profile, additional clients (github, jira, splunk from
+        // mcp-servers.json) are also present, so select the order-tools server by name
+        // rather than assuming it is first.
+        this.mcp = clients.stream()
+                .filter(c -> "order-tools".equals(c.getServerInfo().name()))
+                .findFirst()
+                .orElse(clients.getFirst());
     }
 
     @Override

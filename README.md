@@ -156,6 +156,55 @@ spring.ai.mcp.client.streamable-http.connections.order-server.endpoint=/mcp
 It uses the auto-configured `McpSyncClient` directly (no LLM in the loop) to
 list and call tools.
 
+## Connect the client to external MCP servers (`mcp-servers.json`)
+
+The client can also connect to existing third-party MCP servers — GitHub, Jira,
+Splunk, etc. — alongside the order-tools server. These are typically **STDIO**
+servers launched as a subprocess, defined in
+`mcp-client/src/main/resources/mcp-servers.json` (the Claude-Desktop-style
+`mcpServers` format):
+
+```json
+{
+  "mcpServers": {
+    "github": {
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "-e", "GITHUB_PERSONAL_ACCESS_TOKEN",
+               "ghcr.io/github/github-mcp-server"],
+      "env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "REPLACE_WITH_GITHUB_PAT" }
+    }
+  }
+}
+```
+
+This file is wired up **only under the `external` Spring profile**, via
+`mcp-client/src/main/resources/application-external.properties`:
+
+```properties
+spring.ai.mcp.client.stdio.servers-configuration=classpath:mcp-servers.json
+```
+
+Keeping it behind a profile means the default `order-cli.sh` flow is unaffected.
+The client connects to every configured MCP server **eagerly at startup**, so an
+external server is only loaded when you opt in:
+
+```bash
+mvn -pl mcp-client spring-boot:run -Dspring-boot.run.profiles=external
+# or with the jar:
+java -jar mcp-client/target/mcp-client-0.0.1-SNAPSHOT.jar --spring.profiles.active=external tools
+```
+
+Before enabling it:
+
+- Fill in real credentials in `mcp-servers.json` (the `REPLACE_WITH_*` placeholders).
+- Install the matching runtime for each server — `docker` for GitHub/Jira, `uvx`
+  for Splunk. An unreachable server here will fail client startup.
+- `mcp-servers.json` holds live tokens once filled in — gitignore it or switch to
+  env-var injection before committing.
+
+`OrderMcpCli` selects the order-tools connection **by server name**, so the extra
+connections don't interfere with the `create`/`list`/`get` commands.
+
 ## Connect from other MCP clients
 
 Any Streamable-HTTP-capable MCP client can point at `http://localhost:8080/mcp`.
@@ -175,6 +224,10 @@ mcp-server/
 mcp-client/
   OrderClientApplication                    (non-web Spring Boot app)
   OrderMcpCli                               (ApplicationRunner: parses args, calls McpSyncClient)
+  resources/
+    application.properties                  (order-server connection, default profile)
+    application-external.properties         (loads mcp-servers.json under the "external" profile)
+    mcp-servers.json                        (STDIO defs for GitHub / Jira / Splunk MCP servers)
 
 order-cli.sh                                (friendly wrapper around the client jar)
 ```
