@@ -7,19 +7,25 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.5</version>
+        <version>3.5.15</version>
         <relativePath/>
     </parent>
 
     <groupId>com.example</groupId>
     <artifactId>spring-mcp-ordertools</artifactId>
     <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
     <name>spring-mcp-ordertools</name>
-    <description>Spring AI MCP server exposing order-management tools</description>
+    <description>Spring AI MCP order tools: Streamable HTTP server + command-line client</description>
+
+    <modules>
+        <module>mcp-server</module>
+        <module>mcp-client</module>
+    </modules>
 
     <properties>
         <java.version>21</java.version>
-        <spring-ai.version>1.0.0</spring-ai.version>
+        <spring-ai.version>1.1.7</spring-ai.version>
     </properties>
 
     <dependencyManagement>
@@ -33,28 +39,5 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-
-    <dependencies>
-        <!-- MCP server over WebMVC (SSE + streamable HTTP transport) -->
-        <dependency>
-            <groupId>org.springframework.ai</groupId>
-            <artifactId>spring-ai-starter-mcp-server-webmvc</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
 
 </project>
