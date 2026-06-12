@@ -21,7 +21,7 @@ flowchart LR
     user([User / shell]) -- "args: create, list, get…" --> cli
 
     subgraph client["mcp-client (CLI, Spring Boot, non-web)"]
-        cli["OrderMcpCli<br/>CommandLineRunner"]
+        cli["OrderMcpCli<br/>ApplicationRunner"]
         sync["McpSyncClient<br/>(auto-configured)"]
         cli --> sync
     end
@@ -223,7 +223,14 @@ mcp-server/
 
 mcp-client/
   OrderClientApplication                    (non-web Spring Boot app)
-  OrderMcpCli                               (ApplicationRunner: parses args, calls McpSyncClient)
+  OrderMcpCli                               (ApplicationRunner: dispatches CLI commands to MCP tools)
+    listTools()                             prints all tools advertised by the connected MCP server
+    create()                               parses positional args and invokes createOrder with a single line item
+    list()                                 invokes listOrders, optionally filtered by status
+    call()                                 calls a named MCP tool and prints the text response or error
+    required()                             returns args[index] or throws with a descriptive message
+    isHelp()                               detects help flags (help, -h, --help)
+    printUsage()                           prints the command synopsis and valid STATUS values
   resources/
     application.properties                  (order-server connection, default profile)
     application-external.properties         (loads mcp-servers.json under the "external" profile)

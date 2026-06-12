@@ -71,6 +71,7 @@ public class OrderMcpCli implements ApplicationRunner {
         }
     }
 
+    // Prints all tools advertised by the connected MCP server.
     private void listTools() {
         System.out.println("Available tools on '" + mcp.getServerInfo().name() + "':\n");
         for (Tool tool : mcp.listTools().tools()) {
@@ -78,6 +79,7 @@ public class OrderMcpCli implements ApplicationRunner {
         }
     }
 
+    // Parses positional args and invokes the createOrder tool with a single line item.
     private void create(String[] args) {
         // create <customer> <sku> <name> <quantity> <unitPrice>
         String customer = required(args, 1, "customer");
@@ -91,6 +93,7 @@ public class OrderMcpCli implements ApplicationRunner {
         call("createOrder", Map.of("customer", customer, "items", List.of(item)));
     }
 
+    // Invokes listOrders, optionally filtered by the status arg.
     private void list(String[] args) {
         // list [STATUS]
         Map<String, Object> arguments = args.length > 1
@@ -99,6 +102,7 @@ public class OrderMcpCli implements ApplicationRunner {
         call("listOrders", arguments);
     }
 
+    // Calls a named MCP tool and prints the text response (or error) to stdout/stderr.
     private void call(String toolName, Map<String, Object> arguments) {
         CallToolResult result = mcp.callTool(new CallToolRequest(toolName, arguments));
         if (Boolean.TRUE.equals(result.isError())) {
@@ -111,6 +115,7 @@ public class OrderMcpCli implements ApplicationRunner {
         }
     }
 
+    // Returns args[index] or throws with a descriptive message if the index is out of bounds.
     private static String required(String[] args, int index, String name) {
         if (index >= args.length) {
             throw new IllegalArgumentException("missing argument: " + name);
@@ -118,10 +123,12 @@ public class OrderMcpCli implements ApplicationRunner {
         return args[index];
     }
 
+    // Returns true for any common help flag so the user gets usage instead of an error.
     private static boolean isHelp(String arg) {
         return arg.equals("help") || arg.equals("-h") || arg.equals("--help");
     }
 
+    // Prints the command synopsis and valid STATUS values to stdout.
     private void printUsage() {
         System.out.println("""
 
